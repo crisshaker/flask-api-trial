@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, abort, g
 from blog.database import db
 from blog.models import Post
 from blog.schemas import PostSchema
-from blog.decorators import require_login
+from blog.decorators import require_login, owns_post
 
 blueprint = Blueprint('posts', __name__, url_prefix='/posts')
 
@@ -10,7 +10,7 @@ blueprint = Blueprint('posts', __name__, url_prefix='/posts')
 @blueprint.route('/', methods=['GET'])
 @require_login
 def get_all_posts():
-    posts = db.query(Post).all()
+    posts = db.query(Post).filter(Post.author_id == g.user.id).all()
     return jsonify(PostSchema().dump(posts, many=True))
 
 
@@ -41,8 +41,10 @@ def create_post():
 
 @blueprint.route('/<id>', methods=['GET'])
 @require_login
+@owns_post
 def get_post(id):
-    post = db.query(Post).filter(Post.id == id).first()
+    post = db.query(Post).filter(
+        Post.id == id, Post.author_id == g.user.id).first()
     if not post:
         return jsonify({'error': 'Post not found'}), 404
 
@@ -51,6 +53,7 @@ def get_post(id):
 
 @blueprint.route('/<id>', methods=['PUT'])
 @require_login
+@owns_post
 def update_post(id):
     body = request.get_json(force=True)
 
@@ -65,8 +68,10 @@ def update_post(id):
 
 @blueprint.route('/<id>', methods=['DELETE'])
 @require_login
+@owns_post
 def delete_post(id):
-    deleted = db.query(Post).filter(Post.id == id).delete()
+    deleted = db.query(Post).filter(
+        Post.id == id, Post.author_id == g.user.id).delete()
     db.commit()
 
     return jsonify({'success': True if deleted else False})

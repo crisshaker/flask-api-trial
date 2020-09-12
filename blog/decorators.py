@@ -1,14 +1,14 @@
 from functools import wraps
-from flask import request, abort, g
+from flask import request, abort, g, jsonify
 import jwt
 from blog.config import JWT_SECRET
 from blog.database import db
-from blog.models import User
+from blog.models import User, Post
 
 
 def require_login(func):
     @wraps(func)
-    def wrapped(*args, **kwargs):
+    def inner(*args, **kwargs):
         token = request.headers.get('Authorization')
         if not token:
             abort(401)
@@ -24,4 +24,16 @@ def require_login(func):
 
         return func(*args, **kwargs)
 
-    return wrapped
+    return inner
+
+
+def owns_post(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+        post = db.query(Post).filter(Post.id == kwargs.get('id')).first()
+        if post and post.author_id != g.user.id:
+            return jsonify({'error': "You don't have the permission to access the requested resource."}), 403
+
+        return func(*args, **kwargs)
+
+    return inner
