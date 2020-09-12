@@ -9,6 +9,7 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'users'
+    __table_args__ = {'sqlite_autoincrement': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, nullable=False, unique=True)
@@ -23,21 +24,18 @@ class User(Base):
     def is_correct_password(self, candidate_password):
         return bcrypt.checkpw(candidate_password.encode(), self.password)
 
-    def to_json(self):
-        return {"name": self.username}
-
     def __repr__(self):
         return "<User {}>".format(self.username)
 
 
 class Post(Base):
     __tablename__ = 'posts'
+    __table_args__ = {'sqlite_autoincrement': True}
 
     id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
     body = Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow())
-    updated_at = Column(DateTime, onupdate=datetime.utcnow())
-
-    user = relationship('User')
+    author_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    author = relationship('User')

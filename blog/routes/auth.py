@@ -41,9 +41,9 @@ def register():
 
 @blueprint.route('/login', methods=['POST'])
 def login():
-    body = request.json
-    username = body['username']
-    password = body['password']
+    body = request.get_json(force=True)
+    username = body.get('username')
+    password = body.get('password')
 
     errors = {}
 
