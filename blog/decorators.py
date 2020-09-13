@@ -3,7 +3,7 @@ from flask import request, abort, g, jsonify
 import jwt
 from blog.config import JWT_SECRET
 from blog.database import db
-from blog.models import User, Post
+from blog.models import User, Post, Comment
 
 
 def require_login(func):
@@ -32,7 +32,20 @@ def owns_post(func):
     def inner(*args, **kwargs):
         post = db.query(Post).filter(Post.id == kwargs.get('id')).first()
         if post and post.author_id != g.user.id:
-            return jsonify({'error': "You don't have the permission to access the requested resource."}), 403
+            abort(403)
+
+        return func(*args, **kwargs)
+
+    return inner
+
+
+def owns_comment(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+        comment = db.query(Comment).filter(
+            Comment.id == kwargs.get('id')).first()
+        if comment and comment.author_id != g.user.id:
+            abort(403)
 
         return func(*args, **kwargs)
 

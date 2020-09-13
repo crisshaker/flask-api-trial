@@ -3,7 +3,7 @@ from werkzeug.exceptions import HTTPException
 from marshmallow.exceptions import ValidationError
 from blog.models import Base, User
 from blog.database import engine, db
-from blog.routes import auth, posts, users
+from blog.routes import auth, posts, users, comments
 
 
 Base.metadata.create_all(engine)
@@ -28,6 +28,12 @@ def not_found(e):
     return jsonify({'error': 'UNAUTHORIZED'}), 401
 
 
+@app.errorhandler(403)
+def forbidden(e):
+    print(e)
+    return jsonify({'error': "You don't have the permission to access the requested resource."}), 403
+
+
 @app.errorhandler(404)
 def not_found(e):
     print(e)
@@ -43,3 +49,4 @@ def errorhandler(e):
 app.register_blueprint(auth.blueprint)
 app.register_blueprint(posts.blueprint)
 app.register_blueprint(users.blueprint)
+app.register_blueprint(comments.blueprint)

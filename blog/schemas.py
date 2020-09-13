@@ -7,6 +7,9 @@ class UserSchema(Schema):
     password = fields.String(required=True, load_only=True)
     created_at = fields.DateTime(dump_only=True)
 
+    class Meta:
+        unknown = EXCLUDE
+
     @pre_load
     def pre_load(self, data, **kwargs):
         if 'username' in data:
@@ -26,9 +29,6 @@ class UserSchema(Schema):
             raise ValidationError(
                 'Password must be at least 6 characters long')
 
-    class Meta:
-        unknown = EXCLUDE
-
 
 class PostSchema(Schema):
     id = fields.Integer(dump_only=True)
@@ -38,6 +38,9 @@ class PostSchema(Schema):
     author = fields.Nested(UserSchema(), dump_only=True)
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
+
+    class Meta:
+        unknown = EXCLUDE
 
     @pre_load
     def pre_load(self, data, **kwargs):
@@ -57,5 +60,27 @@ class PostSchema(Schema):
         if len(value) == 0:
             raise ValidationError('Body cannot be empty')
 
+
+class CommentSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    body = fields.String(required=True)
+    author_id = fields.Integer(dump_only=True)
+    post_id = fields.Integer(dump_only=True)
+    author = fields.Nested(UserSchema(), dump_only=True)
+    created_at = fields.DateTime(dump_only=True)
+    updated_at = fields.DateTime(dump_only=True)
+
     class Meta:
         unknown = EXCLUDE
+
+    @pre_load
+    def pre_load(self, data, **kwargs):
+        if 'body' in data:
+            data['body'] = data['body'].strip()
+
+        return data
+
+    @validates('body')
+    def validate_body(self, value):
+        if len(value) == 0:
+            raise ValidationError('Comment body cannot be empty')

@@ -1,20 +1,19 @@
 from flask import Blueprint, jsonify, request, abort, g
 from blog.database import db
-from blog.models import Post
-from blog.schemas import PostSchema
-from blog.decorators import require_login, owns_post
+from blog.models import Post, Comment
+from blog.schemas import PostSchema, CommentSchema
+from blog.decorators import require_login, owns_post, owns_comment
 
-blueprint = Blueprint('posts', __name__, url_prefix='/posts')
+blueprint = Blueprint('posts', __name__)
 
 
-@blueprint.route('/', methods=['GET'])
-@require_login
+@blueprint.route('/posts', methods=['GET'])
 def get_all_posts():
-    posts = db.query(Post).filter(Post.author_id == g.user.id).all()
+    posts = db.query(Post).all()
     return jsonify(PostSchema().dump(posts, many=True))
 
 
-@blueprint.route('/', methods=['POST'])
+@blueprint.route('/posts', methods=['POST'])
 @require_login
 def create_post():
     body = request.get_json(force=True)
@@ -27,19 +26,16 @@ def create_post():
     return jsonify(PostSchema().dump(post))
 
 
-@blueprint.route('/<id>', methods=['GET'])
-@require_login
-@owns_post
+@blueprint.route('/posts/<id>', methods=['GET'])
 def get_post(id):
-    post = db.query(Post).filter(
-        Post.id == id, Post.author_id == g.user.id).first()
+    post = db.query(Post).filter(Post.id == id).first()
     if not post:
         return jsonify({'error': 'Post not found'}), 404
 
     return jsonify(PostSchema().dump(post))
 
 
-@blueprint.route('/<id>', methods=['PUT'])
+@blueprint.route('/posts/<id>', methods=['PUT'])
 @require_login
 @owns_post
 def update_post(id):
@@ -47,13 +43,14 @@ def update_post(id):
 
     fields = ['title', 'body']
     update = PostSchema(only=fields).load(body)
-    updated = db.query(Post).filter(Post.id == id).update(update)
+    updated = db.query(Post).filter(
+        Post.id == id, Post.author_id == g.user.id).update(update)
     db.commit()
 
     return jsonify({'success': True if updated else False})
 
 
-@blueprint.route('/<id>', methods=['DELETE'])
+@blueprint.route('/posts/<id>', methods=['DELETE'])
 @require_login
 @owns_post
 def delete_post(id):
@@ -62,3 +59,22 @@ def delete_post(id):
     db.commit()
 
     return jsonify({'success': True if deleted else False})
+
+
+@blueprint.route('/posts/<id>/comments', methods=['GET'])
+def get_post_comments(id):
+    comments = db.query(Comment).filter(Comment.post_id == id).all()
+    return jsonify(CommentSchema().dump(comments, many=True))
+
+
+@blueprint.route('/posts/<id>/comments', methods=['POST'])
+@require_login
+def comment_on_post(id):
+    body = request.get_json(force=True)
+
+    data = CommentSchema().load(body)
+    comment = Comment(**data, author_id=g.user.id, post_id=id)
+    db.add(comment)
+    db.commit()
+
+    return jsonify(CommentSchema().dump(comment))

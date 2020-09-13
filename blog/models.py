@@ -11,7 +11,7 @@ class User(Base):
     __tablename__ = 'users'
     __table_args__ = {'sqlite_autoincrement': True}
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     username = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -38,4 +38,18 @@ class Post(Base):
     author_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    author = relationship('User')
+
+
+class Comment(Base):
+    __tablename__ = 'comments'
+    __table_args__ = {'sqlite_autoincrement': True}
+
+    id = Column(Integer, primary_key=True)
+    body = Column(String, nullable=False)
+    author_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    post_id = Column(Integer, ForeignKey('posts.id'), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+
     author = relationship('User')
