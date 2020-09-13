@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException
+from marshmallow.exceptions import ValidationError
 from blog.models import Base, User
 from blog.database import engine, db
 from blog.routes import auth, posts, users
@@ -13,6 +14,12 @@ app.url_map.strict_slashes = False
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     db.remove()
+
+
+@app.errorhandler(ValidationError)
+def marshmallow_validation_error(e):
+    print(e)
+    return jsonify({'errors': e.messages}), 400
 
 
 @app.errorhandler(401)

@@ -31,13 +31,31 @@ class UserSchema(Schema):
 
 
 class PostSchema(Schema):
-    id = fields.Integer()
-    title = fields.String()
-    body = fields.String()
-    author_id = fields.Integer()
-    author = fields.Nested(UserSchema())
-    created_at = fields.DateTime()
-    updated_at = fields.DateTime()
+    id = fields.Integer(dump_only=True)
+    title = fields.String(required=True)
+    body = fields.String(required=True)
+    author_id = fields.Integer(dump_only=True)
+    author = fields.Nested(UserSchema(), dump_only=True)
+    created_at = fields.DateTime(dump_only=True)
+    updated_at = fields.DateTime(dump_only=True)
+
+    @pre_load
+    def pre_load(self, data, **kwargs):
+        for field in ['title', 'body']:
+            if field in data:
+                data[field] = data[field].strip()
+
+        return data
+
+    @validates('title')
+    def validate_title(self, value):
+        if len(value) == 0:
+            raise ValidationError('Title cannot be empty')
+
+    @validates('body')
+    def validate_body(self, value):
+        if len(value) == 0:
+            raise ValidationError('Body cannot be empty')
 
     class Meta:
         unknown = EXCLUDE

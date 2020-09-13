@@ -19,20 +19,8 @@ def get_all_posts():
 def create_post():
     body = request.get_json(force=True)
 
-    title = body.get('title')
-    post_body = body.get('body')
-
-    errors = {}
-    if not (title and len(title.strip())):
-        errors['title'] = 'Title required'
-
-    if not (post_body and len(post_body.strip())):
-        errors['body'] = 'Body required'
-
-    if len(errors):
-        return jsonify({'errors': errors}), 400
-
-    post = Post(title=title, body=post_body, author_id=g.user.id)
+    data = PostSchema().load(body)
+    post = Post(**data, author_id=g.user.id)
     db.add(post)
     db.commit()
 
@@ -59,7 +47,6 @@ def update_post(id):
 
     fields = ['title', 'body']
     update = PostSchema(only=fields).load(body)
-
     updated = db.query(Post).filter(Post.id == id).update(update)
     db.commit()
 
