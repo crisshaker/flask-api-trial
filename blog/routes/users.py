@@ -9,5 +9,6 @@ blueprint = Blueprint('users', __name__, url_prefix='/users')
 @blueprint.route('/', methods=['GET'])
 def get_all_users():
     users = db.query(User).all()
+    users[98]
 
     return jsonify(UserSchema().dump(users, many=True))

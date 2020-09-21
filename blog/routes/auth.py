@@ -12,7 +12,7 @@ blueprint = Blueprint('auth', __name__, url_prefix='/auth')
 @blueprint.route('/register', methods=['POST'])
 def register():
     body = request.get_json(force=True)
-    data = UserSchema().load(body)
+    data = UserSchema(only=['username', 'password']).load(body)
 
     username_taken = db.query(User).filter(
         User.username == data['username']).first()

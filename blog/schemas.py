@@ -2,10 +2,10 @@ from marshmallow import Schema, fields, EXCLUDE, validates, ValidationError, pre
 
 
 class UserSchema(Schema):
-    id = fields.Integer(dump_only=True)
+    id = fields.Integer()
     username = fields.String(required=True)
     password = fields.String(required=True, load_only=True)
-    created_at = fields.DateTime(dump_only=True)
+    created_at = fields.DateTime()
 
     class Meta:
         unknown = EXCLUDE
@@ -31,13 +31,13 @@ class UserSchema(Schema):
 
 
 class PostSchema(Schema):
-    id = fields.Integer(dump_only=True)
+    id = fields.Integer()
     title = fields.String(required=True)
     body = fields.String(required=True)
-    author_id = fields.Integer(dump_only=True)
-    author = fields.Nested(UserSchema(), dump_only=True)
-    created_at = fields.DateTime(dump_only=True)
-    updated_at = fields.DateTime(dump_only=True)
+    author_id = fields.Integer()
+    author = fields.Nested(UserSchema())
+    created_at = fields.DateTime()
+    updated_at = fields.DateTime()
 
     class Meta:
         unknown = EXCLUDE
@@ -62,13 +62,13 @@ class PostSchema(Schema):
 
 
 class CommentSchema(Schema):
-    id = fields.Integer(dump_only=True)
+    id = fields.Integer()
     body = fields.String(required=True)
-    author_id = fields.Integer(dump_only=True)
-    post_id = fields.Integer(dump_only=True)
-    author = fields.Nested(UserSchema(), dump_only=True)
-    created_at = fields.DateTime(dump_only=True)
-    updated_at = fields.DateTime(dump_only=True)
+    author_id = fields.Integer()
+    post_id = fields.Integer()
+    author = fields.Nested(UserSchema())
+    created_at = fields.DateTime()
+    updated_at = fields.DateTime()
 
     class Meta:
         unknown = EXCLUDE

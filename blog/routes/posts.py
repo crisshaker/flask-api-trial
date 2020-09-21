@@ -18,7 +18,7 @@ def get_all_posts():
 def create_post():
     body = request.get_json(force=True)
 
-    data = PostSchema().load(body)
+    data = PostSchema(only=['post', 'title']).load(body)
     post = Post(**data, author_id=g.user.id)
     db.add(post)
     db.commit()
@@ -41,8 +41,7 @@ def get_post(id):
 def update_post(id):
     body = request.get_json(force=True)
 
-    fields = ['title', 'body']
-    update = PostSchema(only=fields).load(body)
+    update = PostSchema(only=['title', 'body']).load(body)
     updated = db.query(Post).filter(
         Post.id == id, Post.author_id == g.user.id).update(update)
     db.commit()
@@ -72,7 +71,7 @@ def get_post_comments(id):
 def comment_on_post(id):
     body = request.get_json(force=True)
 
-    data = CommentSchema().load(body)
+    data = CommentSchema(only=['body']).load(body)
     comment = Comment(**data, author_id=g.user.id, post_id=id)
     db.add(comment)
     db.commit()

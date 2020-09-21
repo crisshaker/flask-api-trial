@@ -1,3 +1,4 @@
+import json
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException
 from marshmallow.exceptions import ValidationError
@@ -22,27 +23,15 @@ def marshmallow_validation_error(e):
     return jsonify({'errors': e.messages}), 400
 
 
-@app.errorhandler(401)
-def not_found(e):
-    print(e)
-    return jsonify({'error': 'UNAUTHORIZED'}), 401
-
-
-@app.errorhandler(403)
-def forbidden(e):
-    print(e)
-    return jsonify({'error': "You don't have the permission to access the requested resource."}), 403
-
-
-@app.errorhandler(404)
-def not_found(e):
-    print(e)
-    return jsonify({'error': 'Oops... Not found'}), 404
-
-
 @app.errorhandler(Exception)
 def errorhandler(e):
     print(e)
+    if isinstance(e, HTTPException):
+        response = e.get_response()
+        response.data = json.dumps({"error": e.name})
+        response.content_type = "application/json"
+        return response
+
     return jsonify({'error': 'Request failed'}), 500
 
 

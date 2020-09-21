@@ -38,7 +38,11 @@ class Post(Base):
     author_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
+
     author = relationship('User')
+
+    def __repr__(self):
+        return "<Post {}. {}>".format(self.id, self.title)
 
 
 class Comment(Base):
@@ -48,8 +52,12 @@ class Comment(Base):
     id = Column(Integer, primary_key=True)
     body = Column(String, nullable=False)
     author_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    post_id = Column(Integer, ForeignKey('posts.id'), nullable=False)
+    post_id = Column(Integer, ForeignKey(
+        'posts.id', ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
     author = relationship('User')
+
+    def __repr__(self):
+        return "<Comment {}. {}>".format(self.id, self.body)
